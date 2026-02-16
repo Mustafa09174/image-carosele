@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>image carousel · 4 slides</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: linear-gradient(145deg, #f0f5fa 0%, #dde6ed 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      padding: 1rem;
+    }
+    .carousel-container {
+      position: relative;
+      max-width: 900px;
+      width: 100%;
+      border-radius: 2rem;
+      background: #ffffff40;
+      backdrop-filter: blur(3px);
+      box-shadow: 0 30px 40px -20px rgba(0,20,30,0.4), 0 0 0 1px rgba(255,255,255,0.7) inset;
+      padding: 1.2rem;
+    }
+    .carousel {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 12px 25px -8px rgba(0,0,0,0.3);
+    }
+    .carousel-track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.15, 1);
+      will-change: transform;
+    }
+    .carousel-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #9aaec2;
+      user-select: none;
+      pointer-events: none;
+    }
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 40px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 6px 14px rgba(0,10,20,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 28px;
+      font-weight: 400;
+      color: #1a3b4e;
+      transition: all 0.15s ease;
+      z-index: 15;
+      line-height: 1;
+      user-select: none;
+    }
+    .carousel-arrow:hover {
+      background: white;
+      transform: translateY(-50%) scale(1.07);
+      box-shadow: 0 10px 18px rgba(0,30,40,0.25);
+      color: #003153;
+    }
+    .carousel-arrow:active {
+      transform: translateY(-50%) scale(0.98);
+    }
+    .arrow-left {
+      left: 12px;
+    }
+    .arrow-right {
+      right: 12px;
+    }
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      padding: 0 8px;
+    }
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 20px;
+      background: #b3c7d6;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .dot.active {
+      background: #1f4b6e;
+      width: 32px;
+      background: #1f4b6e;
+      border-color: #ffffffaa;
+      box-shadow: 0 0 0 2px #ffffff, 0 4px 10px #0a2c40;
+    }
+    .dot:hover {
+      background: #487595;
+      transform: scale(1.2);
+    }
+    .image-label {
+      position: absolute;
+      bottom: 16px;
+      left: 22px;
+      background: rgba(10, 25, 35, 0.6);
+      backdrop-filter: blur(6px);
+      color: white;
+      padding: 6px 18px;
+      border-radius: 60px;
+      font-size: 0.85rem;
+      letter-spacing: 0.3px;
+      border: 1px solid rgba(255,255,255,0.3);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .auto-hint {
+      text-align: center;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #2c4a66;
+      opacity: 0.7;
+      font-weight: 500;
+    }
+    @media (max-width: 600px) {
+      .carousel-arrow {
+        width: 36px;
+        height: 36px;
+        font-size: 24px;
+      }
+      .arrow-left { left: 6px; }
+      .arrow-right { right: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="carousel-container">
+  <div class="carousel" id="carousel">
+    <div class="carousel-track" id="track"></div>
+    <div class="carousel-arrow arrow-left" id="arrowLeft" aria-label="Previous slide">‹</div>
+    <div class="carousel-arrow arrow-right" id="arrowRight" aria-label="Next slide">›</div>
+    <div class="image-label" id="imageLabel">bg-intro-01</div>
+  </div>
+  <div class="carousel-dots" id="dotContainer"></div>
+  <div class="auto-hint">⏱️ changes every 3 seconds · use arrows or dots</div>
+</div>
+<script>
+  (function() {
+    const images = [
+      { src: 'bg-intro-01.jpg', alt: 'bg-intro-01', label: 'bg-intro-01' },
+      { src: 'bg-intro-02.jpg', alt: 'bg-intro-02', label: 'bg-intro-02' },
+      { src: 'bg-intro-04.jpg', alt: 'bg-intro-04', label: 'bg-intro-04' },
+      { src: 'bg-11.jpg', alt: 'bg-11', label: 'bg-11' }
+    ];
+    const track = document.getElementById('track');
+    const dotContainer = document.getElementById('dotContainer');
+    const imageLabel = document.getElementById('imageLabel');
+    const arrowLeft = document.getElementById('arrowLeft');
+    const arrowRight = document.getElementById('arrowRight');
+    let currentIndex = 0;
+    let slideCount = images.length;
+    let autoPlayInterval = null;
+    function buildCarousel() {
+      track.innerHTML = '';
+      dotContainer.innerHTML = '';
+      images.forEach((img, idx) => {
+        const slide = document.createElement('img');
+        slide.src = img.src;
+        slide.alt = img.alt;
+        slide.classList.add('carousel-slide');
+        track.appendChild(slide);
+      });
+      images.forEach((_, idx) => {
+        const dot = document.createElement('span');
+        dot.classList.add('dot');
+        dot.dataset.index = idx;
+        dot.setAttribute('role', 'button');
+        dot.setAttribute('tabindex', '0');
+        dot.setAttribute('aria-label', `Go to slide ${idx + 1}`);
+        dotContainer.appendChild(dot);
+      });
+    }
+    function updateCarousel(index) {
+      if (index < 0) index = slideCount - 1;
+      if (index >= slideCount) index = 0;
+      currentIndex = index;
+      const translateX = -currentIndex * 100;
+      track.style.transform = `translateX(${translateX}%)`;
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((dot, i) => {
+        if (i === currentIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+      imageLabel.textContent = images[currentIndex].label;
+    }
+    function nextSlide() {
+      const newIndex = (currentIndex + 1) % slideCount;
+      updateCarousel(newIndex);
+    }
+    function prevSlide() {
+      const newIndex = (currentIndex - 1 + slideCount) % slideCount;
+      updateCarousel(newIndex);
+    }
+    function restartAutoPlay() {
+      if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+      }
+      autoPlayInterval = setInterval(() => {
+        nextSlide();
+      }, 3000);
+    }
+    function attachEvents() {
+      arrowLeft.addEventListener('click', () => {
+        prevSlide();
+        restartAutoPlay();
+      });
+      arrowRight.addEventListener('click', () => {
+        nextSlide();
+        restartAutoPlay();
+      });
+      dotContainer.addEventListener('click', (e) => {
+        const dot = e.target.closest('.dot');
+        if (!dot) return;
+        const index = dot.dataset.index;
+        if (index !== undefined) {
+          const newIndex = parseInt(index, 10);
+          if (!isNaN(newIndex) && newIndex !== currentIndex) {
+            updateCarousel(newIndex);
+            restartAutoPlay();
+          }
+        }
+      });
+      dotContainer.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const dot = e.target.closest('.dot');
+          if (dot && dot.dataset.index) {
+            e.preventDefault();
+            const idx = parseInt(dot.dataset.index, 10);
+            if (!isNaN(idx) && idx !== currentIndex) {
+              updateCarousel(idx);
+              restartAutoPlay();
+            }
+          }
+        }
+      });
+      const carousel = document.getElementById('carousel');
+      carousel.addEventListener('mouseenter', () => {
+        if (autoPlayInterval) {
+          clearInterval(autoPlayInterval);
+          autoPlayInterval = null;
+        }
+      });
+      carousel.addEventListener('mouseleave', () => {
+        if (!autoPlayInterval) {
+          autoPlayInterval = setInterval(() => {
+            nextSlide();
+          }, 3000);
+        }
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (autoPlayInterval) {
+            clearInterval(autoPlayInterval);
+            autoPlayInterval = null;
+          }
+        } else {
+          if (!autoPlayInterval) {
+            autoPlayInterval = setInterval(() => {
+              nextSlide();
+            }, 3000);
+          }
+        }
+      });
+    }
+    buildCarousel();
+    updateCarousel(0);
+    restartAutoPlay();
+    attachEvents();
+  })();
+</script>
+</body>
+</html>     
